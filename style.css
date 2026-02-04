@@ -1,0 +1,192 @@
+body {
+        padding: 0 2px;
+        background: #ccc;
+        font-family: Google Sans, sans-serif;
+        margin: 0px auto;
+        max-width: 1920px;
+    }
+
+    label {
+        padding: 0.25em 0;
+        margin: 0;
+    }
+
+
+    .element-do-kopiowania {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+    }
+
+    .tekst {
+        margin: 0;
+        overflow-x: hidden;
+        display: block;
+        max-height: 110px;
+        padding: 2px 12px 2px 4px;
+        text-align: justify;
+        line-height: 90%;
+    }
+
+    /* fanaberia, inny styl dla tagów wyszukiwania */
+    #tagi .tekst {
+        font-family: monospace;
+        font-size: 0.75em;
+        line-height: 16px;
+        color: #777;
+    }
+
+    .text-gray {
+        color: #606060;
+    }
+
+    .modules .tekst {
+        all: unset;
+    }
+
+    .btn-kopiuj {
+        background-color: #fff;
+        color: #0059A3;
+        border: 1px solid #0059A3;
+        padding: 6px 14px;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-kopiuj:hover {
+        background-color: #0059A3;
+        color: #FFF;
+    }
+
+    .btn-kopiuj:active {
+        background-color: #09243b;
+        transform: scale(95%);
+    }
+
+    #moduleList {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 8px;
+        margin-bottom: 2px;
+    }
+
+    #moduleList button {
+        width: 210px;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 4px;
+        border: 1px solid #c0c0c0;
+        background-color: #f8f8f8;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    #moduleList button:hover {
+        border-color: #000;
+        background-color: #e3e3e3;
+    }
+
+    #moduleList button img {
+        margin-right: 8px;
+    }
+
+    textarea {
+        font-family: monospace;
+        line-height: 14px;
+        color: #5d5d5d;
+    }
+
+    #spec .tekst {
+        all: unset;
+        font-size: 0.8em;
+    }
+
+    .rounded-050 {
+        border-radius: 0.5rem !important;
+    }
+
+    .rounded-125 {
+        border-radius: 1.25rem !important;
+    }
+
+    .rounded-150 {
+        border-radius: 1.5rem !important;
+    }
+
+    .rounded-175 {
+        border-radius: 1.75rem !important;
+    }
+
+    .bubble {
+        margin: 0 10px 40px;
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box;
+        align-self: stretch;
+    }
+
+
+    .bubble>.tekst>.col-md-3 {
+        max-width: none;
+         !important height: 100%;
+    }
+
+    .floatingBox {
+        position: absolute;
+        left: 20%;
+        top: 1px;
+        font-size: 0.8em;
+        padding: 3px 0 1px;
+        color: #FFF;
+        width: 60%;
+        text-shadow: 0 0 8px #000;
+        margin: 0 auto;
+        border: 2px solid #000;
+        z-index: 500;
+    }
+
+    .lista-ciagow p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .lista-ciagow span {
+        margin-left: 9px;
+    }
+
+
+    .rodzic>p {
+        margin: 20px 0 12px;
+        padding: 13px 20px 10px;
+        border: 2px dotted #333;
+        box-shadow: 2px 2px 12px #ccc;
+        border-radius: 6px;
+        font-family: Calibri;
+        font-size: 1rem;
+        color: #000;
+        min-width: 120px;
+        min-height: 46px;
+    }
+
+    .thead {
+        background: #0c3254;
+        color: #FFF;
+    }
+
+    .genBtn {
+        margin: 0 auto;
+        border: 1px solid #333;
+        border-radius: 100px;
+        padding: 12px 36px;
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+        background: #eee;
+    }
+
+    .genBtn:hover {
+        box-shadow: none;
+        background: #f1f1f1;
+    }
