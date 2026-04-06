@@ -1,213 +1,219 @@
-        ///////////////////////////////////////////////////////////////////////////////
-        //////////////////////////// KOPIOWANIE CECH //////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////
-        const przyciski = document.querySelectorAll('.btn-kopiuj');
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// KOPIOWANIE TREŚCI DO SCHOWKA ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-        przyciski.forEach(button => {
-            button.addEventListener('click', () => {
-                // Pobieramy zawartość HTML, a nie tylko tekst
-                const tekst = button.parentElement.querySelector('.tekst').innerHTML;
-                navigator.clipboard.writeText(tekst).catch(err => {
-                    console.error('Błąd kopiowania do schowka:', err);
-                });
+document.addEventListener('click', (e) => {
+    console.log('Klik!', e.target);
+
+    const btn = e.target.closest('.btn-copy');
+    if (!btn) {
+        console.log('Brak .btn-copy');
+        return;
+    }
+
+    console.log('Znaleziono button');
+
+    const module = btn.closest('.copy-module');
+    if (!module) {
+        console.error('Brak .copy-module');
+        return;
+    }
+
+    console.log('Znaleziono moduł');
+
+    const selector = btn.dataset.copyTarget || module.dataset.copyTarget || '.tekst';
+    console.log('Selector:', selector);
+
+    const target = module.querySelector(selector);
+    if (!target) {
+        console.error('Nie znaleziono targetu');
+        return;
+    }
+
+    console.log('Target OK:', target);
+
+    let content = target.innerHTML;
+    content = convertToEntities(content);
+    copyToClipboard(content);
+});
+
+
+function copyToClipboard(text) {
+    console.log('Próba kopiowania...');
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(() => console.log('✅ Skopiowano (clipboard API)'))
+            .catch(err => {
+                console.error('Clipboard API fail:', err);
+                fallbackCopy(text);
             });
+    } else {
+        console.warn('Brak clipboard API → fallback');
+        fallbackCopy(text);
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////// KOPIOWANIE CECH //////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+const przyciski = document.querySelectorAll('.btn-kopiuj');
+
+przyciski.forEach(button => {
+    button.addEventListener('click', () => {
+        // Pobieramy zawartość HTML, a nie tylko tekst
+        const tekst = button.parentElement.querySelector('.tekst').innerHTML;
+        navigator.clipboard.writeText(tekst).catch(err => {
+            console.error('Błąd kopiowania do schowka:', err);
         });
+    });
+});
 
 
-        let modulesWithComments = [];
+let modulesWithComments = [];
 
-        function initModuleList(containerId, listId) {
-            const container = document.getElementById(containerId);
-            const list = document.getElementById(listId);
-            list.innerHTML = '';
-            modulesWithComments = [];
+function initModuleList(containerId, listId) {
+    const container = document.getElementById(containerId);
+    const list = document.getElementById(listId);
+    list.innerHTML = '';
+    modulesWithComments = [];
 
-            const children = Array.from(container.childNodes);
-            let pendingComment = null;
+    const children = Array.from(container.childNodes);
+    let pendingComment = null;
 
-            children.forEach(node => {
-                if (node.nodeType === Node.COMMENT_NODE) {
-                    pendingComment = node.data.trim();
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    modulesWithComments.push({
-                        element: node,
-                        comment: pendingComment
-                    });
-                    pendingComment = null;
-                }
+    children.forEach(node => {
+        if (node.nodeType === Node.COMMENT_NODE) {
+            pendingComment = node.data.trim();
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            modulesWithComments.push({
+                element: node,
+                comment: pendingComment
             });
+            pendingComment = null;
+        }
+    });
 
-            modulesWithComments.forEach((mod, index) => {
-                let labelText = mod.comment || ('Moduł ' + (index + 1));
+    modulesWithComments.forEach((mod, index) => {
+        let labelText = mod.comment || ('Moduł ' + (index + 1));
 
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.title = "Kliknij, aby skopiować kod modułu";
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.title = "Kliknij, aby skopiować kod modułu";
 
-                // Pobieramy obrazek z modułu
-                const imgInModule = mod.element.querySelector('img');
-                if (imgInModule) {
-                    const img = document.createElement('img');
-                    img.src = imgInModule.src;
-                    img.alt = imgInModule.alt || '';
-                    img.style.display = 'block';
-                    img.style.width = '48px'; // możesz dostosować rozmiar
-                    btn.appendChild(img);
-                }
-
-                // Tekst labela
-                btn.appendChild(document.createTextNode(labelText));
-
-                btn.addEventListener('click', () => copyModuleCode(index));
-
-                list.appendChild(btn);
-            });
-
+        // Pobieramy obrazek z modułu
+        const imgInModule = mod.element.querySelector('img');
+        if (imgInModule) {
+            const img = document.createElement('img');
+            img.src = imgInModule.src;
+            img.alt = imgInModule.alt || '';
+            img.style.display = 'block';
+            img.style.width = '48px'; // możesz dostosować rozmiar
+            btn.appendChild(img);
         }
 
-        function copyModuleCode(index) {
-            const mod = modulesWithComments[index];
-            if (!mod) return;
+        // Tekst labela
+        btn.appendChild(document.createTextNode(labelText));
 
-            let code = '';
-            if (mod.comment) {
-                code += `<!--${mod.comment}-->\n`;
-            }
-            code += mod.element.outerHTML;
+        btn.addEventListener('click', () => copyModuleCode(index));
 
-            navigator.clipboard.writeText(code).catch(err => {
-                console.error('Błąd kopiowania do schowka:', err);
-            });
-        }
+        list.appendChild(btn);
+    });
 
-        window.onload = () => {
-            initModuleList('modulesContainer', 'moduleList');
-        };
+}
 
-        ///////////////////////////////////////////////////////////////////////////////
-        ////////////////////////// DYNAMICZNE GENEROWANIE CIĄGÓW /////////////////////
-        ///////////////////////////////////////////////////////////////////////////////
+function copyModuleCode(index) {
+    const mod = modulesWithComments[index];
+    if (!mod) return;
 
-        const resultDiv = document.getElementById('result');
-        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-        const copyBtn = document.getElementById('copyBtn'); // zakładamy, że w HTML jest przycisk Kopiuj
+    let code = '';
+    if (mod.comment) {
+        code += `<!--${mod.comment}-->\n`;
+    }
+    code += mod.element.outerHTML;
 
-        // Funkcja do aktualizacji wyniku dynamicznie
-        function updateResult() {
-            const selectedValues = [];
-            checkboxes.forEach(cb => {
-                if (cb.checked) {
-                    selectedValues.push(cb.value);
-                }
-            });
-            resultDiv.textContent = selectedValues.join(', ');
-        }
+    navigator.clipboard.writeText(code).catch(err => {
+        console.error('Błąd kopiowania do schowka:', err);
+    });
+}
 
-        // Nasłuchujemy zmiany każdego checkboxa
+window.onload = () => {
+    initModuleList('modulesContainer', 'moduleList');
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////// DYNAMICZNE GENEROWANIE CIĄGÓW /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+document.addEventListener('DOMContentLoaded', () => {
+    const resultDiv = document.getElementById('result');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const copyBtn = document.getElementById('generujCiag');
+
+    // Aktualizacja wyniku na bieżąco
+    function updateResult() {
+        const selectedValues = [];
         checkboxes.forEach(cb => {
-            cb.addEventListener('change', updateResult);
+            if (cb.checked) selectedValues.push(cb.value);
         });
+        resultDiv.textContent = selectedValues.join(', ');
+    }
 
-        // Funkcja kopiowania i czyszczenia
-        copyBtn.addEventListener('click', () => {
-            if (resultDiv.textContent) {
-                navigator.clipboard.writeText(resultDiv.textContent)
-                    .then(() => {
-                        // Czyścimy zaznaczenia i wynik
-                        checkboxes.forEach(cb => cb.checked = false);
-                        resultDiv.textContent = '';
-                    })
-                    .catch(err => {
-                        console.error('Błąd przy kopiowaniu: ', err);
-                    });
-            } else {}
+    // Nasłuchiwanie zmian checkboxów
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateResult);
+    });
+
+    // Funkcja czyszczenia checkboxów i divu
+    function clearAll() {
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change')); // wymusza aktualizację UI
         });
+        resultDiv.textContent = '';
+    }
 
-        ///////////////////////////////////////////////////////////////////////////////
-        ////////////////////////// AKTUALIZACJA SPECYFIKACJI //////////////////////////
-        ///////////////////////////////////////////////////////////////////////////////
+    // Kliknięcie przycisku: kopiowanie + czyszczenie
+    copyBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // zabezpieczenie, jeśli button w formie
+        const text = resultDiv.textContent;
 
-        document.getElementById('convertBtn').addEventListener('click', function () {
-            const input = document.getElementById('input').value;
-            if (!input.trim()) {
-                alert('Wklej najpierw HTML tabeli.');
-                return;
-            }
+        if (text) {
+            // Nowoczesne API Clipboard
+            navigator.clipboard.writeText(text)
+                .then(() => console.log('Skopiowano do schowka'))
+                .catch(err => {
+                    console.error('Błąd przy kopiowaniu:', err);
 
-
-            const temp = document.createElement('div');
-            temp.innerHTML = input;
-
-
-            let wrapper = temp.querySelector('div.table-responsive');
-            let table = wrapper ? wrapper.querySelector('table.table') : temp.querySelector('table.table');
-            if (!table) {
-                alert('Nie znaleziono tabeli z klasą table.');
-                return;
-            }
-
-
-            const sections = [];
-            let currentSection = null;
-
-
-[...table.querySelectorAll('thead, tbody')].forEach(section => {
-                if (section.tagName === 'THEAD') {
-                    const tr = section.querySelector('tr');
-                    if (!tr) return;
-                    tr.className = 'thead';
-                    currentSection = [tr];
-                    sections.push(currentSection);
-                } else if (section.tagName === 'TBODY') {
-                    const rows = [...section.querySelectorAll('tr')];
-                    rows.forEach(r => r.className = 'tbody');
-                    if (currentSection) currentSection.push(...rows);
-                }
-            });
-
-
-            sections.forEach(sec => {
-                if (sec.length > 1) sec[sec.length - 1].classList.add('last');
-            });
-
-
-            // Zachowaj wcięcia z oryginalnego HTML
-            const originalLines = input.split('\n');
-            const indentMap = new Map();
-            originalLines.forEach(line => {
-                const trimmed = line.trimStart();
-                if (trimmed.startsWith('<tr')) {
-                    const indent = line.match(/^\s*/)[0];
-                    const key = trimmed.replace(/\s+/g, '');
-                    indentMap.set(key, indent);
-                }
-            });
-
-
-            table.innerHTML = '';
-            sections.forEach(sec => {
-                sec.forEach(tr => {
-                    const key = tr.outerHTML.replace(/\s+/g, '');
-                    const indent = indentMap.get(key) || '';
-                    table.appendChild(document.createTextNode(indent));
-                    table.appendChild(tr);
-                    table.appendChild(document.createTextNode('\n'));
+                    // Fallback dla środowisk bez HTTPS
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        console.log('Skopiowano (fallback)');
+                    } catch (err) {
+                        console.error('Fallback copy failed:', err);
+                    }
+                    document.body.removeChild(textarea);
                 });
-            });
+        }
 
+        clearAll();
+    });
+});
 
-            const resultHTML = wrapper ? wrapper.outerHTML : table.outerHTML;
-            document.getElementById('output').value = resultHTML;
-        });
+$(document).on('inserted.bs.tooltip', function (e) {
+    var $trigger = $(e.target);
+    var tooltipId = $trigger.attr('aria-describedby');
+    var $tooltip = $('#' + tooltipId);
 
+    if ($trigger.is('i')) {
+        $tooltip.addClass('tooltip-a');
+    }
 
-        document.getElementById('copySpec').addEventListener('click', function () {
-            const output = document.getElementById('output');
-            if (!output.value.trim()) {
-                alert('Nie ma nic do skopiowania 🙂');
-                return;
-            }
-            output.select();
-            document.execCommand('copy');
-            alert('Skopiowano do schowka!');
-        });
+    if ($trigger.is('a')) {
+        $tooltip.addClass('tooltip-b');
+    }
+});
